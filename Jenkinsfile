@@ -37,11 +37,14 @@ pipeline {
             }
         }
 
-        stage('Publish Image') {
+       stage('Publish Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${DOCKER_HUB_CRED}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    bat 'echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin'
+                    bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
                     bat "docker push ${DOCKER_IMAGE}:${params.IMAGE_TAG}"
+                }
+            }
+        }
                 }
             }
         }

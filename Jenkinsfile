@@ -46,13 +46,13 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+     stage('Deploy to Kubernetes') {
             when {
                 expression { return params.ENVIRONMENT == 'Production' }
             }
             steps {
                 echo "Deploying application to Kubernetes..."
-                bat "kubectl apply -f deployment.yaml"
+                bat 'kubectl apply -f deployment.yaml --kubeconfig "C:\\Users\\batch1.VITUNIVERSITY\\.kube\\config"'
             }
         }
     }

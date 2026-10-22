@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Disaster Response & Resource Portal</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f4f6f9; }
+    h1, h2 { color: #222; }
+    .card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .alert { background: #ffebee; color: #c62828; padding: 10px; border-left: 5px solid #d32f2f; margin-bottom: 10px; font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f0f0f0; }
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 12px; color: white; }
+    .High { background: #e53935; } .Medium { background: #fb8c00; } .Low { background: #43a047; }
+    .metrics { display: flex; gap: 15px; }
+    .metric-box { flex: 1; background: #eef2f7; padding: 10px; border-radius: 6px; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>Disaster Response & Emergency Coordination Portal</h1>
+
+  <div class="card">
+    <h2>Emergency Analytics & Allocation Status</h2>
+    <div class="metrics">
+      <div class="metric-box"><h3>Open Incidents</h3><p id="openCount">0</p></div>
+      <div class="metric-box"><h3>Resolved Incidents</h3><p id="resolvedCount">0</p></div>
+      <div class="metric-box"><h3>Available Rescue Teams</h3><p>Team Charlie, Team Delta</p></div>
+      <div class="metric-box"><h3>Supplies to Replenish</h3><p>Drinking Water, First Aid Kits</p></div>
+    </div>
+    <p><strong>Highest Priority Incident:</strong> <span id="highestPriority">None</span></p>
+  </div>
+
+  <div class="card">
+    <h2>Evacuation Centres</h2>
+    <div id="centreAlerts"></div>
+    <table id="centresTable">
+      <thead>
+        <tr><th>Centre Name</th><th>Capacity</th><th>Occupancy</th><th>Occupancy %</th><th>Relief Supplies</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Incident Records</h2>
+    <label>Filter by Severity: </label>
+    <select id="severityFilter" onchange="renderIncidents()">
+      <option value="All">All</option>
+      <option value="High">High</option>
+      <option value="Medium">Medium</option>
+      <option value="Low">Low</option>
+    </select>
+    <table id="incidentsTable">
+      <thead>
+        <tr><th>ID</th><th>Location</th><th>Category</th><th>Severity</th><th>Reported Time</th><th>Team</th><th>Status</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const centres = [
+      { name: "Central High School", capacity: 500, occupancy: 475, supplies: "Food Packets, Blankets" },
+      { name: "Community Hall North", capacity: 300, occupancy: 180, supplies: "First Aid Kits, Water" },
+      { name: "Riverside Shelter", capacity: 200, occupancy: 195, supplies: "Medicines, Cots" }
+    ];
+
+    const incidents = [
+      { id: "INC-101", location: "Sector 4 Bridge", category: "Flash Flood", severity: "High", time: "10:15 AM", team: "Team Alpha", status: "Open" },
+      { id: "INC-102", location: "Ward 9 Slums", category: "Waterlogging", severity: "Medium", time: "10:45 AM", team: "Team Beta", status: "Open" },
+      { id: "INC-103", location: "Main Power Substation", category: "Power Cut", severity: "High", time: "11:00 AM", team: "Team Echo", status: "Resolved" },
+      { id: "INC-104", location: "East Canal Road", category: "Road Blockage", severity: "Low", time: "11:20 AM", team: "Civil Defence", status: "Resolved" },
+      { id: "INC-105", location: "Old Town Market", category: "Building Collapse Risk", severity: "High", time: "11:50 AM", team: "Team Alpha", status: "Open" }
+    ];
+
+    function renderCentres() {
+      const tbody = document.querySelector("#centresTable tbody");
+      const alerts = document.getElementById("centreAlerts");
+      tbody.innerHTML = "";
+      alerts.innerHTML = "";
+      centres.forEach(c => {
+        const pct = ((c.occupancy / c.capacity) * 100).toFixed(1);
+        if (pct > 90) {
+          alerts.innerHTML += `<div class="alert">CRITICAL ALERT: ${c.name} has exceeded 90% capacity (${pct}%)!</div>`;
+        }
+        tbody.innerHTML += `<tr><td>${c.name}</td><td>${c.capacity}</td><td>${c.occupancy}</td><td>${pct}%</td><td>${c.supplies}</td></tr>`;
+      });
+    }
+
+    function renderIncidents() {
+      const filter = document.getElementById("severityFilter").value;
+      const tbody = document.querySelector("#incidentsTable tbody");
+      tbody.innerHTML = "";
+      let open = 0, resolved = 0, highest = null;
+
+      incidents.forEach(inc => {
+        if (inc.status === "Open") open++; else resolved++;
+        if (inc.status === "Open" && inc.severity === "High" && !highest) highest = inc;
+
+        if (filter === "All" || inc.severity === filter) {
+          tbody.innerHTML += `<tr>
+            <td>${inc.id}</td><td>${inc.location}</td><td>${inc.category}</td>
+            <td><span class="badge ${inc.severity}">${inc.severity}</span></td>
+            <td>${inc.time}</td><td>${inc.team}</td><td>${inc.status}</td>
+          </tr>`;
+        }
+      });
+
+      document.getElementById("openCount").innerText = open;
+      document.getElementById("resolvedCount").innerText = resolved;
+      document.getElementById("highestPriority").innerText = highest ? `${highest.id} (${highest.location}) - Severity: High` : "None";
+    }
+
+    renderCentres();
+    renderIncidents();
+  </script>
+</body>
+</html>

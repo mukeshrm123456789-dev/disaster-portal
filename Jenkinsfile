@@ -45,9 +45,6 @@ pipeline {
                 }
             }
         }
-                }
-            }
-        }
 
         stage('Deploy to Kubernetes') {
             when {

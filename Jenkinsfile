@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         DOCKER_HUB_CRED = 'dockerhub-credentials'
-        DOCKER_IMAGE    = '<YOUR_DOCKERHUB_USERNAME>/disaster-portal'
+        DOCKER_IMAGE    = 'muki1376/disaster-portal'
     }
 
     stages {
@@ -23,12 +23,15 @@ pipeline {
             parallel {
                 stage('Docker Build') {
                     steps {
-                        sh "docker build -t ${DOCKER_IMAGE}:${params.IMAGE_TAG} ."
+                        echo "Building Docker image..."
+                        bat "docker build -t %DOCKER_IMAGE%:%IMAGE_TAG% ."
                     }
                 }
                 stage('Verify Artifacts') {
                     steps {
-                        sh 'test -f index.html'
+                        echo "Verifying local project files..."
+                        bat "if not exist index.html exit /b 1"
+                        bat "if not exist deployment.yaml exit /b 1"
                     }
                 }
             }
@@ -37,8 +40,8 @@ pipeline {
         stage('Publish Image') {
             steps {
                 withCredentials([usernamePassword(credentialsId: "${DOCKER_HUB_CRED}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
-                    sh "docker push ${DOCKER_IMAGE}:${params.IMAGE_TAG}"
+                    bat "echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin"
+                    bat "docker push %DOCKER_IMAGE%:%IMAGE_TAG%"
                 }
             }
         }
@@ -48,10 +51,8 @@ pipeline {
                 expression { return params.ENVIRONMENT == 'Production' }
             }
             steps {
-                sh """
-                  sed -i 's|<muki1376>/disaster-portal:.*|${DOCKER_IMAGE}:${params.IMAGE_TAG}|g' deployment.yaml
-                  kubectl apply -f deployment.yaml
-                """
+                echo "Deploying application to Kubernetes..."
+                bat "kubectl apply -f deployment.yaml"
             }
         }
     }
